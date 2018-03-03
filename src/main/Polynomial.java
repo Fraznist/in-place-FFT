@@ -177,19 +177,25 @@ public class Polynomial {
 			// Thinking about the recursion tree for the FFT algorithm,
 			// Each iteration of the outer loop (i) represents a level of the recursion tree
 			for (int i = 1; i < p.array.size(); i *= 2) {	
-				List<Complex> samples = Complex.ONE.nthRoot(i*2);
+				Complex delta = new Complex(Math.cos(Math.toRadians(180 / i)), Math.sin(Math.toRadians(180 / i)));
+				
 				// Each iteration of loop j represents 2 merging nodes of the recursion tree
 				// i is the size (degree + 1) of a single polynomial at this level.
 				for (int j = 0; j < p.array.size(); j += 2*i) {	
+					Complex samplePointX = Complex.ONE;
+					Complex samplePointRootX = new Complex(-1);
+					
 					// Finally, loop k actually merges j'th and 1+j'th polynomials,
 					// Both polynomials of size i
 					for (int k = j; k < j + i; k++) {
 						Complex even = p.get(k);
 						Complex odd = p.get(k + i);
-						Complex samplePointX = samples.get(k - j);
-						Complex samplePointRootX = samples.get((k-j) + i);
+						
 						p.set(k, even.add(odd.multiply(samplePointX)));
 						p.set(k + i, even.add(odd.multiply(samplePointRootX)));
+						
+						samplePointX = samplePointX.multiply(delta);
+						samplePointRootX = samplePointRootX.multiply(delta);
 					}
 				}
 			}
@@ -267,23 +273,28 @@ public class Polynomial {
 			// i is half the size of a polynomial at this level,
 			// i.e. i is the size of the odd or the even portion
 			for (int i = (int) (p.array.size() * 0.5); i >= 1; i *= 0.5) {	
-				List<Complex> samples = Complex.ONE.nthRoot(i*2);
+				Complex delta = new Complex(Math.cos(Math.toRadians(180 / i)), Math.sin(Math.toRadians(180 / i)));
+				
 				// Each iteration of loop j represents a dividing node of the recursion tree
 				// i is half the size (degree + 1) of a single polynomial at this level.
 				for (int j = 0; j < p.array.size(); j += 2*i) {	
+					Complex x1 = Complex.ONE;
+					Complex x2 = new Complex(-1);
+					
 					// Finally, loop k actually divides j'th polynomial,
 					// Both polynomials of size i
 					for (int k = j; k < j + i; k++) {
 						Complex s1 = p.get(k);
 						Complex s2 = p.get(k + i);
-						Complex x1 = samples.get(k - j);
-						Complex x2 = samples.get((k-j) + i);
 						
 						Complex odd = s1.subtract(s2).divide(x1.subtract(x2));
 						Complex even = s1.subtract(x1.multiply(odd));
 						
 						p.set(k, even);
 						p.set(k + i, odd);
+						
+						x1 = x1.multiply(delta);
+						x2 = x2.multiply(delta);
 					}
 				}
 			}

@@ -48,7 +48,11 @@ public class Polynomial {
 		return representation.mult(this, p);
 	}
 	
-	public Polynomial changeRepresentation(int targetSamples) {
+	public void multInPlace(Polynomial p) {
+		representation.multInPlace(this, p);
+	}
+	
+	private Polynomial changeRepresentation(int targetSamples) {
 		return representation.changeRepresentation(this, targetSamples);
 	}
 	
@@ -60,6 +64,7 @@ public class Polynomial {
 		public Complex eval(Polynomial p, Complex c);
 		public Polynomial add(Polynomial p1, Polynomial p2);
 		public Polynomial mult(Polynomial p1, Polynomial p2);
+		public void multInPlace(Polynomial p1, Polynomial p2);
 		public Polynomial changeRepresentation(Polynomial p, int targetSamples);
 		public String string(Polynomial p);
 		
@@ -136,7 +141,24 @@ public class Polynomial {
 			
 			Polynomial mult = p1.mult(p2);
 			
+			p1.changeRepresentation(0);
+			p2.changeRepresentation(0);
+			
 			return mult.changeRepresentation(0);
+		}
+		
+		public void multInPlace(Polynomial p1, Polynomial p2) {
+			int n = 1;
+			int multDeg = p1.degree + p2.degree;
+			while (n < multDeg + 1) // Determine size of arraylist = 2^n
+				n *= 2;
+			p1.changeRepresentation(n);
+			p2.changeRepresentation(n);
+			
+			p1.multInPlace(p2);
+			
+			p1.changeRepresentation(0);
+			p2.changeRepresentation(0);
 		}
 
 		@Override
@@ -261,6 +283,13 @@ public class Polynomial {
 			for (int i = 0; i < p1.array.size(); i++) 
 				list.add(p1.get(i).multiply(p2.get(i)));
 			return new Polynomial(list, p1.degree + p2.degree);
+		}
+		
+		public void multInPlace(Polynomial p1, Polynomial p2) {
+			for (int i = 0; i < p1.array.size(); i++) 
+				p1.array.set(i, p1.get(i).multiply(p2.get(i)));
+			
+			p1.degree += p2.degree;
 		}
 		
 		// arg targetSamples isn't needed, why am I even using strategy pattern
